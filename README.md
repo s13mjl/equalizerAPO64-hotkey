@@ -5,7 +5,7 @@ with **global hotkey support for the Editor** added back to the UI.
 
 ## What is this?
 
-This project extends the [equalizerAPO64](https://gitee.com/s13mjl/equalizerAPO64) build (a double-precision,
+This project extends the [equalizerAPO64](https://github.com/TheFireKahuna/equalizerAPO64) build (a double-precision,
 AVX-optimized 64-bit port of EqualizerAPO) with a feature that the original Editor lacked:
 
 - **Per-filter global hotkeys** — assign a system-wide keyboard shortcut (e.g. `Alt+X`) to any filter
@@ -92,7 +92,7 @@ upstream EqualizerAPO. See [License.txt](License.txt) for the full text.
 ### Attribution
 
 - Original EqualizerAPO — © Jonas Thedering and contributors. https://sourceforge.net/projects/equalizerapo/
-- Double-precision 64-bit port — https://gitee.com/s13mjl/equalizerAPO64
+- Double-precision 64-bit port — https://github.com/TheFireKahuna/equalizerAPO64
 - Hotkey restoration and Qt 6 compatibility work — this fork.
 
 ## Contributing
