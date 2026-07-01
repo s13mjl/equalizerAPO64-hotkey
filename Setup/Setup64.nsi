@@ -7,4 +7,4 @@
 
 !include "Setup.nsi"
 
-OutFile "EqualizerAPO-x64-${VERSION}.exe"
+OutFile "EqualizerAPO-x64-${VERSION}-Hotkey.exe"

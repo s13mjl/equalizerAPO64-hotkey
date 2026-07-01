@@ -20,6 +20,7 @@
 #pragma once
 
 #include "Editor/IFilterGUI.h"
+#include <QKeySequence>
 
 namespace Ui {
 class CommentFilterGUI;
@@ -38,10 +39,28 @@ public:
 	void loadPreferences(const QVariantMap& prefs) override;
 	void storePreferences(QVariantMap& prefs) override;
 
+	// Get/set hotkey for this filter
+	QKeySequence getHotkey() const;
+	void setHotkey(const QKeySequence& keySeq);
+	
+	// Get unique identifier for this filter instance
+	QString getFilterId() const;
+
+public slots:
+	void toggleEnabled();
+
+signals:
+	void hotkeyChanged();
+
 private slots:
 	void on_actionPowerOn_toggled(bool checked);
+	void on_actionSetHotkey_triggered();
 
 private:
 	Ui::CommentFilterGUI* ui;
 	IFilterGUI* child;
+	QKeySequence hotkey;
+	QString filterId;
+	
+	void updateHotkeyTooltip();
 };

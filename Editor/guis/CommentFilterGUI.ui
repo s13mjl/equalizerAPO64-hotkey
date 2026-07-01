@@ -56,6 +56,18 @@
     <string>Power on</string>
    </property>
   </action>
+  <action name="actionSetHotkey">
+   <property name="icon">
+    <iconset resource="../Editor.qrc">
+     <normaloff>:/icons/preferences-desktop-keyboard-shortcuts.ico</normaloff>:/icons/preferences-desktop-keyboard-shortcuts.ico</iconset>
+   </property>
+   <property name="text">
+    <string>Set hotkey</string>
+   </property>
+   <property name="toolTip">
+    <string>Click to set hotkey</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

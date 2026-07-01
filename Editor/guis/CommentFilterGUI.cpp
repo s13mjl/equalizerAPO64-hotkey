@@ -18,8 +18,12 @@
 */
 
 #include "Editor/helpers/GUIHelper.h"
+#include "Editor/helpers/HotkeyManager.h"
+#include "Editor/dialogs/HotkeyEditDialog.h"
 #include "CommentFilterGUI.h"
 #include "ui_CommentFilterGUI.h"
+#include <QMessageBox>
+#include <QDebug>
 
 using namespace std;
 
@@ -38,9 +42,19 @@ CommentFilterGUI::CommentFilterGUI(IFilterGUI* child, bool isComment)
 	ui->actionPowerOn->setChecked(!isComment);
 	ui->toolBar->setIconSize(GUIHelper::scale(QSize(24, 24)));
 	ui->toolBar->addAction(ui->actionPowerOn);
+	
+	// Add hotkey action - use text since we don't have a keyboard icon
+	ui->actionSetHotkey->setText("🔑");
+	ui->toolBar->addAction(ui->actionSetHotkey);
+	
 	ui->toolBar->updateMaximumHeight();
 
 	child->setEnabled(!isComment);
+	
+	// Generate unique filter ID based on object address
+	filterId = QString::number(reinterpret_cast<quintptr>(this), 16);
+	
+	updateHotkeyTooltip();
 }
 
 CommentFilterGUI::~CommentFilterGUI()
@@ -73,11 +87,60 @@ void CommentFilterGUI::store(QString& command, QString& parameters)
 void CommentFilterGUI::loadPreferences(const QVariantMap& prefs)
 {
 	child->loadPreferences(prefs);
+	
+	// Load hotkey if stored
+	if (prefs.contains("hotkey"))
+	{
+		hotkey = QKeySequence(prefs.value("hotkey").toString());
+		updateHotkeyTooltip();
+	}
 }
 
 void CommentFilterGUI::storePreferences(QVariantMap& prefs)
 {
 	child->storePreferences(prefs);
+	
+	// Store hotkey
+	if (!hotkey.isEmpty())
+	{
+		prefs["hotkey"] = hotkey.toString();
+	}
+}
+
+QKeySequence CommentFilterGUI::getHotkey() const
+{
+	return hotkey;
+}
+
+void CommentFilterGUI::setHotkey(const QKeySequence& keySeq)
+{
+	hotkey = keySeq;
+	updateHotkeyTooltip();
+}
+
+QString CommentFilterGUI::getFilterId() const
+{
+	return filterId;
+}
+
+void CommentFilterGUI::toggleEnabled()
+{
+	ui->actionPowerOn->toggle();
+}
+
+void CommentFilterGUI::updateHotkeyTooltip()
+{
+	QString tooltip;
+	if (hotkey.isEmpty())
+	{
+		tooltip = tr("Click to set hotkey");
+	}
+	else
+	{
+		tooltip = tr("Hotkey: %1 (click to change)").arg(hotkey.toString(QKeySequence::NativeText));
+	}
+	ui->actionSetHotkey->setToolTip(tooltip);
+	ui->actionSetHotkey->setStatusTip(tooltip);
 }
 
 void CommentFilterGUI::on_actionPowerOn_toggled(bool checked)
@@ -85,4 +148,26 @@ void CommentFilterGUI::on_actionPowerOn_toggled(bool checked)
 	child->setEnabled(checked);
 
 	emit updateModel();
+}
+
+void CommentFilterGUI::on_actionSetHotkey_triggered()
+{
+	HotkeyEditDialog dialog(this);
+	dialog.setKeySequence(hotkey);
+	
+	if (dialog.exec() == QDialog::Accepted)
+	{
+		QKeySequence newHotkey = dialog.getKeySequence();
+		
+		// If hotkey changed, update it
+		if (newHotkey != hotkey)
+		{
+			setHotkey(newHotkey);
+			
+			// Notify FilterTable to re-register the hotkey
+			emit hotkeyChanged();
+			
+			emit updateModel();  // Trigger save of preferences
+		}
+	}
 }

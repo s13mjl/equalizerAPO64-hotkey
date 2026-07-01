@@ -243,3 +243,33 @@ paket-files/
 # JetBrains Rider
 .idea/
 *.sln.iml
+# --- Qt 6 ---
+# MOC / UIC / RCC generated files
+moc_*.cpp
+moc_*.h
+qrc_*.cpp
+ui_*.h
+
+# qmake build artifacts
+*.pro.user
+*.pro.user.*
+*.qmlc
+*.jsc
+Makefile*
+.qmake.stash
+
+# Qt build directories
+build/
+build-*/
+*build*/
+*.qm
+
+# Qt Creator
+*.autosave
+
+# --- EqualizerAPO64 specific ---
+# Local build outputs not meant to be tracked
+Setup/EqualizerAPO-x64-*.exe
+amd-fftw-build/
+muparserx-build/
+lib64/

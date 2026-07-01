@@ -56,6 +56,7 @@
 #include "helpers/ChannelHelper.h"
 #include "helpers/RegistryHelper.h"
 #include "FilterTable.h"
+#include "guis/CommentFilterGUI.h"
 
 using namespace std;
 
@@ -63,6 +64,23 @@ FilterTable::FilterTable(MainWindow* mainWindow, QWidget* parent)
 	: QWidget(parent), mainWindow(mainWindow)
 {
 	gridLayout = new QGridLayout(this);
+	
+	hotkeyManager = new HotkeyManager(this);
+	connect(hotkeyManager, &HotkeyManager::hotkeyPressed, this, [this](const QString& filterId) {
+		// Find the CommentFilterGUI with this filterId and toggle it
+		for (Item* item : items)
+		{
+			if (item->gui != NULL)
+			{
+				CommentFilterGUI* commentGui = qobject_cast<CommentFilterGUI*>(item->gui);
+				if (commentGui != NULL && commentGui->getFilterId() == filterId)
+				{
+					commentGui->toggleEnabled();
+					break;
+				}
+			}
+		}
+	});
 
 	QIcon icon(QStringLiteral(":/icons/arrow_right.ico"));
 	insertArrow = new QLabel(this);
@@ -117,6 +135,10 @@ void FilterTable::updateGuis()
 {
 	QElapsedTimer timer;
 	timer.start();
+
+	// Clear all registered hotkeys before rebuilding GUIs
+	if (hotkeyManager != NULL)
+		hotkeyManager->clearAll();
 
 	for (Item* item : items)
 	{
@@ -196,6 +218,16 @@ void FilterTable::updateGuis()
 
 			connect(gui, SIGNAL(updateModel()), this, SLOT(updateModel()));
 			connect(gui, SIGNAL(updateChannels()), this, SLOT(updateChannels()));
+			
+			// Register hotkey if this is a CommentFilterGUI
+			CommentFilterGUI* commentGui = qobject_cast<CommentFilterGUI*>(gui);
+			if (commentGui != NULL)
+			{
+				registerFilterHotkey(commentGui);
+				connect(commentGui, &CommentFilterGUI::hotkeyChanged, this, [this, commentGui]() {
+					registerFilterHotkey(commentGui);
+				});
+			}
 		}
 
 		row++;
@@ -1077,4 +1109,29 @@ shared_ptr<AbstractAPOInfo> FilterTable::getSelectedDevice() const
 int FilterTable::getSelectedChannelMask() const
 {
 	return selectedChannelMask;
+}
+
+HotkeyManager* FilterTable::getHotkeyManager()
+{
+	return hotkeyManager;
+}
+
+void FilterTable::registerFilterHotkey(CommentFilterGUI* filterGui)
+{
+	if (hotkeyManager == NULL || filterGui == NULL)
+		return;
+	
+	QKeySequence keySeq = filterGui->getHotkey();
+	if (!keySeq.isEmpty())
+	{
+		hotkeyManager->registerHotkey(filterGui->getFilterId(), keySeq);
+		qDebug() << "Registered hotkey for filter" << filterGui->getFilterId() 
+		         << "key" << keySeq.toString();
+	}
+}
+
+void FilterTable::unregisterFilterHotkey(const QString& filterId)
+{
+	if (hotkeyManager != NULL)
+		hotkeyManager->unregisterHotkey(filterId);
 }

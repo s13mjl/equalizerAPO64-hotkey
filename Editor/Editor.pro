@@ -136,7 +136,9 @@ SOURCES += main.cpp\
 	guis/LoudnessCorrectionFilterGUIDialog.cpp \
 	helpers/QtSndfileHandle.cpp \
 	widgets/MiddleClickTabWidget.cpp \
-	widgets/MiddleClickTabBar.cpp
+	widgets/MiddleClickTabBar.cpp \
+	helpers/HotkeyManager.cpp \
+	dialogs/HotkeyEditDialog.cpp
 
 HEADERS  += \
 	../helpers/LogHelper.h \
@@ -260,7 +262,9 @@ HEADERS  += \
 	guis/LoudnessCorrectionFilterGUIDialog.h \
 	helpers/QtSndfileHandle.h \
 	widgets/MiddleClickTabWidget.h \
-	widgets/MiddleClickTabBar.h
+	widgets/MiddleClickTabBar.h \
+	helpers/HotkeyManager.h \
+	dialogs/HotkeyEditDialog.h
 
 FORMS    += \
 	guis/PreampFilterGUI.ui \
@@ -282,7 +286,8 @@ FORMS    += \
 	guis/VSTPluginFilterGUI.ui \
 	guis/VSTPluginFilterGUIDialog.ui \
 	guis/LoudnessCorrectionFilterGUI.ui \
-	guis/LoudnessCorrectionFilterGUIDialog.ui
+	guis/LoudnessCorrectionFilterGUIDialog.ui \
+	dialogs/HotkeyEditDialog.ui
 
 # Dependency paths with environment variable support and fallbacks
 LIBSNDFILE_INCLUDE = $$(LIBSNDFILE_INCLUDE)

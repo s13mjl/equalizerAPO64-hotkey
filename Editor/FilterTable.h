@@ -29,11 +29,14 @@
 #include <QJsonObject>
 
 #include "Editor/helpers/DisableWheelFilter.h"
+#include "Editor/helpers/HotkeyManager.h"
 #include "DeviceAPOInfo.h"
 #include "IFilterGUI.h"
 #include "IFilterGUIFactory.h"
 
 class MainWindow;
+class HotkeyManager;
+class CommentFilterGUI;
 
 class FilterTable : public QWidget
 {
@@ -95,6 +98,11 @@ public:
 	void setScrollOffsets(int x, int y);
 
 	void updateAnalysis();
+	
+	// Hotkey management
+	HotkeyManager* getHotkeyManager();
+	void registerFilterHotkey(CommentFilterGUI* filterGui);
+	void unregisterFilterHotkey(const QString& filterId);
 
 signals:
 	void linesChanged();
@@ -144,6 +152,7 @@ private:
 	int minimumHeightHint = 0;
 	int presetScrollX = -1;
 	int presetScrollY = -1;
+	HotkeyManager* hotkeyManager = NULL;
 };
 
 template<typename T> inline uint qHash(QList<T> list)
