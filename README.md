@@ -1,5 +1,7 @@
 # EqualizerAPO64-Hotkey
 
+English | [简体中文](README.zh-CN.md)
+
 A fork of [EqualizerAPO](https://sourceforge.net/projects/equalizerapo/) (double precision, 64-bit edition)
 with **global hotkey support for the Editor** added back to the UI.
 
