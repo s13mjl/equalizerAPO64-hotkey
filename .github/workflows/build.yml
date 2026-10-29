@@ -16,6 +16,9 @@ permissions:
 env:
   SOLUTION_FILE: EqualizerAPO.sln
   BUILD_CONFIGURATION: Release
+  FFTW_VERSION: '5.1'
+  MUPARSERX_VERSION: '4.0.13'
+  LIBSNDFILE_VERSION: '1.2.2'
 
 jobs:
   build:
@@ -78,47 +81,31 @@ jobs:
     - name: Setup NuGet
       uses: NuGet/setup-nuget@v2
 
-    # Download FFTW from amd-fftw repository artifacts
-    - name: Download FFTW artifacts
-      uses: dawidd6/action-download-artifact@v3
-      with:
-        github_token: ${{ secrets.GH_PAT }}
-        workflow: c-cpp.yml
-        repo: TheFireKahuna/amd-fftw
-        name: ${{ matrix.fftw_artifact }}
-        path: ${{ github.workspace }}\deps\fftw
-        check_artifacts: true
-        search_artifacts: true
-        workflow_conclusion: success
-        allow_forks: true
+    # Prebuilt dependencies are taken from the pinned upstream release assets
+    # (the workflow artifacts they were originally uploaded as have expired).
+    - name: Download FFTW
+      shell: pwsh
+      run: |
+        $url = "https://github.com/TheFireKahuna/amd-fftw/releases/download/$env:FFTW_VERSION/${{ matrix.fftw_artifact }}.zip"
+        Write-Host "Downloading $url"
+        Invoke-WebRequest -Uri $url -OutFile "$env:RUNNER_TEMP\fftw.zip"
+        Expand-Archive -Path "$env:RUNNER_TEMP\fftw.zip" -DestinationPath "$env:GITHUB_WORKSPACE\deps\fftw" -Force
 
-    # Download muParserX from repository artifacts
-    - name: Download muParserX artifacts
-      uses: dawidd6/action-download-artifact@v3
-      with:
-        github_token: ${{ secrets.GH_PAT }}
-        workflow: c-cpp.yml
-        repo: TheFireKahuna/muparserx
-        name: ${{ matrix.muparserx_artifact }}
-        path: ${{ github.workspace }}\deps\muparserx
-        check_artifacts: true
-        search_artifacts: true
-        workflow_conclusion: success
-        allow_forks: true
+    - name: Download muParserX
+      shell: pwsh
+      run: |
+        $url = "https://github.com/TheFireKahuna/muparserx/releases/download/$env:MUPARSERX_VERSION/${{ matrix.muparserx_artifact }}.zip"
+        Write-Host "Downloading $url"
+        Invoke-WebRequest -Uri $url -OutFile "$env:RUNNER_TEMP\muparserx.zip"
+        Expand-Archive -Path "$env:RUNNER_TEMP\muparserx.zip" -DestinationPath "$env:GITHUB_WORKSPACE\deps\muparserx" -Force
 
-    # Download muParserX from repository artifacts
-    - name: Download libsndfile artifacts
-      uses: dawidd6/action-download-artifact@v3
-      with:
-        github_token: ${{ secrets.GH_PAT }}
-        workflow: action.yml
-        repo: TheFireKahuna/libsndfile
-        name: ${{ matrix.libsndfile_artifact }}
-        path: ${{ github.workspace }}\deps\libsndfile
-        check_artifacts: true
-        search_artifacts: true
-        workflow_conclusion: success
-        allow_forks: true
+    - name: Download libsndfile
+      shell: pwsh
+      run: |
+        $url = "https://github.com/TheFireKahuna/libsndfile/releases/download/$env:LIBSNDFILE_VERSION/${{ matrix.libsndfile_artifact }}.zip"
+        Write-Host "Downloading $url"
+        Invoke-WebRequest -Uri $url -OutFile "$env:RUNNER_TEMP\libsndfile.zip"
+        Expand-Archive -Path "$env:RUNNER_TEMP\libsndfile.zip" -DestinationPath "$env:GITHUB_WORKSPACE\deps\libsndfile" -Force
 
     # Clone tclap repository (header-only library)
     - name: Download TCLAP
@@ -262,6 +249,12 @@ jobs:
         Write-Host "  LIB (linker search path): $env:LIB"
         Write-Host ""
 
+        # Match the toolset to the Visual Studio version installed on the runner
+        # (VS 2026 = 18.x = v145, VS 2022 = 17.x = v143)
+        $vsRoot = "${env:ProgramFiles}\Microsoft Visual Studio"
+        $toolset = if (Test-Path "$vsRoot\18") { "v145" } elseif (Test-Path "$vsRoot\17") { "v143" } else { "v145" }
+        Write-Host "Using PlatformToolset: $toolset"
+
         $buildParams = @(
           "/m",
           "/p:Configuration=${{ env.BUILD_CONFIGURATION }}",
@@ -274,7 +267,7 @@ jobs:
           "/p:MUPARSERX_INCLUDE=$env:MUPARSERX_INCLUDE",
           "/p:MUPARSERX_LIB=$env:MUPARSERX_LIB",
           "/p:TCLAP_ROOT=$env:TCLAP_ROOT",
-          "/p:PlatformToolset=v143"  # Override to VS 2022 toolset for CI (project uses v145/VS 2026)
+          "/p:PlatformToolset=$toolset"
         )
 
         $BuildPlatform = "${{ matrix.platform }}"
